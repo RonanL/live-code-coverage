@@ -8,25 +8,16 @@ use Webmozart\Assert\Assert;
 final class LiveCodeCoverage
 {
     /**
-     * @private
-     */
-    private $coverageId;
-
-    /**
      * @var CodeCoverage
      */
     private $codeCoverage;
 
     /**
-     * @var string
+     * @param string $storageDirectory
      */
-    private $storageDirectory;
-
-    private function __construct(CodeCoverage $codeCoverage, $storageDirectory, $coverageId)
+    private function __construct(CodeCoverage $codeCoverage, private $storageDirectory, private $coverageId)
     {
         $this->codeCoverage = $codeCoverage;
-        $this->coverageId = $coverageId;
-        $this->storageDirectory = $storageDirectory;
     }
 
     /**
@@ -56,7 +47,7 @@ final class LiveCodeCoverage
 
         $liveCodeCoverage->start();
 
-        return [$liveCodeCoverage, 'stopAndSave'];
+        return $liveCodeCoverage->stopAndSave(...);
     }
 
     private function start()

@@ -6,10 +6,10 @@ use Webmozart\Assert\Assert;
 
 final class RemoteCodeCoverage
 {
-    const COVERAGE_ID_KEY = 'coverage_id';
-    const COLLECT_CODE_COVERAGE_KEY = 'collect_code_coverage';
-    const COVERAGE_GROUP_KEY = 'coverage_group';
-    const EXPORT_CODE_COVERAGE_KEY = 'export_code_coverage';
+    public const string COVERAGE_ID_KEY = 'coverage_id';
+    public const string COLLECT_CODE_COVERAGE_KEY = 'collect_code_coverage';
+    public const string COVERAGE_GROUP_KEY = 'coverage_group';
+    public const string EXPORT_CODE_COVERAGE_KEY = 'export_code_coverage';
 
     /**
      * Enable remote code coverage.
@@ -28,8 +28,7 @@ final class RemoteCodeCoverage
             };
         }
 
-        $coverageGroup = isset($_GET[self::COVERAGE_GROUP_KEY]) ? $_GET[self::COVERAGE_GROUP_KEY] :
-            (isset($_COOKIE[self::COVERAGE_GROUP_KEY]) ? $_COOKIE[self::COVERAGE_GROUP_KEY] : null);
+        $coverageGroup = $_GET[self::COVERAGE_GROUP_KEY] ?? $_COOKIE[self::COVERAGE_GROUP_KEY] ?? null;
 
         $storageDirectory .= ($coverageGroup ? '/' . $coverageGroup : '');
 
@@ -39,8 +38,7 @@ final class RemoteCodeCoverage
             exit;
         }
 
-        $coverageId = isset($_GET[self::COVERAGE_ID_KEY]) ? $_GET[self::COVERAGE_ID_KEY] :
-            (isset($_COOKIE[self::COVERAGE_ID_KEY]) ? $_COOKIE[self::COVERAGE_ID_KEY] : 'live-coverage');
+        $coverageId = $_GET[self::COVERAGE_ID_KEY] ?? $_COOKIE[self::COVERAGE_ID_KEY] ?? 'live-coverage';
 
         return LiveCodeCoverage::bootstrap(
             isset($_COOKIE[self::COLLECT_CODE_COVERAGE_KEY]) && (bool)$_COOKIE[self::COLLECT_CODE_COVERAGE_KEY],
