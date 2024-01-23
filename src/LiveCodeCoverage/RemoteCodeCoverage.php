@@ -2,6 +2,8 @@
 
 namespace LiveCodeCoverage;
 
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Contracts\Cache\ItemInterface;
 use Webmozart\Assert\Assert;
 
 final class RemoteCodeCoverage
@@ -27,8 +29,13 @@ final class RemoteCodeCoverage
                 // do nothing - code coverage is not enabled
             };
         }
+        $cache = new FilesystemAdapter();
 
-        $coverageGroup = $_GET[self::COVERAGE_GROUP_KEY] ?? $_COOKIE[self::COVERAGE_GROUP_KEY] ?? null;
+        $coverageGroup = $cache->get('coverage_group', function (ItemInterface $item): ?string {
+            $item->expiresAfter(0);
+
+            return $_GET[self::COVERAGE_GROUP_KEY] ?? $_COOKIE[self::COVERAGE_GROUP_KEY] ?? null;
+        });
 
         $storageDirectory .= ($coverageGroup ? '/' . $coverageGroup : '');
 
@@ -38,10 +45,20 @@ final class RemoteCodeCoverage
             exit;
         }
 
-        $coverageId = $_GET[self::COVERAGE_ID_KEY] ?? $_COOKIE[self::COVERAGE_ID_KEY] ?? 'live-coverage';
+        $coverageId = $cache->get('coverage_id', function (ItemInterface $item): string {
+            $item->expiresAfter(0);
+
+            return $_GET[self::COVERAGE_ID_KEY] ?? $_COOKIE[self::COVERAGE_ID_KEY] ?? 'live-coverage';
+        });
+
+        $collectCodeCoverage = $cache->get('collect_code_coverage', function (ItemInterface $item): string {
+            $item->expiresAfter(0);
+
+            return isset($_COOKIE[self::COLLECT_CODE_COVERAGE_KEY]) && (bool)$_COOKIE[self::COLLECT_CODE_COVERAGE_KEY];
+        }) === 'true';
 
         return LiveCodeCoverage::bootstrap(
-            isset($_COOKIE[self::COLLECT_CODE_COVERAGE_KEY]) && (bool)$_COOKIE[self::COLLECT_CODE_COVERAGE_KEY],
+            $collectCodeCoverage,
             $storageDirectory,
             $phpunitConfigFilePath,
             $coverageId
