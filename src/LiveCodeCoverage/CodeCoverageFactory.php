@@ -2,7 +2,6 @@
 
 namespace LiveCodeCoverage;
 
-use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\FilterMapper;
 use PHPUnit\TextUI\XmlConfiguration\Configuration;
 use PHPUnit\TextUI\XmlConfiguration\Loader;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
@@ -48,7 +47,7 @@ final class CodeCoverageFactory
          * `FilterMapper` is not covered by PHPUnit's backward-compatibility promise, but let's use it instead of
          * copying it.
          */
-        (new FilterMapper())->map($codeCoverage->filter(), $configuration->codeCoverage());
+        self::mapFilter($codeCoverage->filter(), $configuration->codeCoverage());
     }
 
     /**
@@ -60,5 +59,32 @@ final class CodeCoverageFactory
         $driverSelector = new Selector();
         $driver = $driverSelector->forLineCoverage($filter);
         return new CodeCoverage($driver, $filter);
+    }
+
+    public static function mapFilter(Filter $filter, \PHPUnit\TextUI\XmlConfiguration\CodeCoverage\CodeCoverage $configuration): void
+    {
+        foreach ($configuration->directories() as $directory) {
+            $filter->includeDirectory(
+                $directory->path(),
+                $directory->suffix(),
+                $directory->prefix(),
+            );
+        }
+
+        foreach ($configuration->files() as $file) {
+            $filter->includeFile($file->path());
+        }
+
+        foreach ($configuration->excludeDirectories() as $directory) {
+            $filter->excludeDirectory(
+                $directory->path(),
+                $directory->suffix(),
+                $directory->prefix(),
+            );
+        }
+
+        foreach ($configuration->excludeFiles() as $file) {
+            $filter->excludeFile($file->path());
+        }
     }
 }
