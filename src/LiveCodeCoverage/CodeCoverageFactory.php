@@ -35,12 +35,6 @@ final class CodeCoverageFactory
             } else {
                 $codeCoverage->excludeUncoveredFiles();
             }
-
-            if ($codeCoverageConfiguration->processUncoveredFiles()) {
-                $codeCoverage->processUncoveredFiles();
-            } else {
-                $codeCoverage->doNotProcessUncoveredFiles();
-            }
         }
 
         /*
