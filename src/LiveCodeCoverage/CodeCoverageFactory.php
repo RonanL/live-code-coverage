@@ -2,6 +2,7 @@
 
 namespace LiveCodeCoverage;
 
+use PHPUnit\TextUI\Configuration\SourceMapper;
 use PHPUnit\TextUI\XmlConfiguration\Configuration;
 use PHPUnit\TextUI\XmlConfiguration\Loader;
 use SebastianBergmann\CodeCoverage\CodeCoverage;
@@ -26,22 +27,16 @@ final class CodeCoverageFactory
 
     private static function configure(CodeCoverage $codeCoverage, Configuration $configuration)
     {
-        $codeCoverageConfiguration = $configuration->codeCoverage();
-
         // The following code is copied from PHPUnit\TextUI\TestRunner
-        if ($codeCoverageConfiguration->hasNonEmptyListOfFilesToBeIncludedInCodeCoverageReport()) {
-            if ($codeCoverageConfiguration->includeUncoveredFiles()) {
+        if ($configuration->source()->notEmpty()) {
+            if ($configuration->codeCoverage()->includeUncoveredFiles()) {
                 $codeCoverage->includeUncoveredFiles();
             } else {
                 $codeCoverage->excludeUncoveredFiles();
             }
         }
 
-        /*
-         * `FilterMapper` is not covered by PHPUnit's backward-compatibility promise, but let's use it instead of
-         * copying it.
-         */
-        self::mapFilter($codeCoverage->filter(), $configuration->codeCoverage());
+        self::mapFilter($codeCoverage->filter(), $configuration);
     }
 
     /**
@@ -55,29 +50,23 @@ final class CodeCoverageFactory
         return new CodeCoverage($driver, $filter);
     }
 
-    public static function mapFilter(Filter $filter, \PHPUnit\TextUI\XmlConfiguration\CodeCoverage\CodeCoverage $configuration): void
+    public static function mapFilter(Filter $filter, Configuration $configuration): void
     {
-        foreach ($configuration->directories() as $directory) {
-            $filter->includeDirectory(
-                $directory->path(),
-                $directory->suffix(),
-                $directory->prefix(),
-            );
+        foreach ($configuration->source()->includeDirectories() as $directory) {
+            $filter->includeFiles(array_keys((new SourceMapper)->map($configuration->source())));
         }
 
-        foreach ($configuration->files() as $file) {
+        foreach ($configuration->source()->includeFiles() as $file) {
             $filter->includeFile($file->path());
         }
 
-        foreach ($configuration->excludeDirectories() as $directory) {
-            $filter->excludeDirectory(
-                $directory->path(),
-                $directory->suffix(),
-                $directory->prefix(),
-            );
+        foreach ($configuration->source()->excludeDirectories() as $directory) {
+            foreach (array_keys((new SourceMapper)->map($configuration->source())) as $file) {
+                $filter->excludeFile($file);
+            }
         }
 
-        foreach ($configuration->excludeFiles() as $file) {
+        foreach ($configuration->source()->excludeFiles() as $file) {
             $filter->excludeFile($file->path());
         }
     }
