@@ -37,11 +37,7 @@ final class CodeCoverageFactory
             }
         }
 
-        /*
-         * `FilterMapper` is not covered by PHPUnit's backward-compatibility promise, but let's use it instead of
-         * copying it.
-         */
-        self::mapFilter($codeCoverage->filter(), $configuration->codeCoverage());
+        self::mapFilter($codeCoverage->filter(), $configuration->source());
     }
 
     /**
@@ -55,9 +51,9 @@ final class CodeCoverageFactory
         return new CodeCoverage($driver, $filter);
     }
 
-    public static function mapFilter(Filter $filter, \PHPUnit\TextUI\XmlConfiguration\CodeCoverage\CodeCoverage $configuration): void
+    public static function mapFilter(Filter $filter, \PHPUnit\TextUI\Configuration\Source $configuration): void
     {
-        foreach ($configuration->directories() as $directory) {
+        foreach ($configuration->includeDirectories() as $directory) {
             $filter->includeDirectory(
                 $directory->path(),
                 $directory->suffix(),
@@ -65,7 +61,7 @@ final class CodeCoverageFactory
             );
         }
 
-        foreach ($configuration->files() as $file) {
+        foreach ($configuration->includeFiles() as $file) {
             $filter->includeFile($file->path());
         }
 
